@@ -1,6 +1,6 @@
 package course1.lesson3;
 
-import org.jetbrains.annotations.NotNull;
+//import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
@@ -48,7 +48,7 @@ public class ArrayApp {
         a[2]= 100500;
     }
 
-    public static void printArray(int @NotNull [] array) {
+    public static void printArray(int [] array) {
         for (int i = 0; i < array.length; i++) {
             System.out.println(array[i] + " ");
         }
