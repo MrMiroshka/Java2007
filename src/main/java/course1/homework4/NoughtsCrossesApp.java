@@ -100,31 +100,23 @@ public class NoughtsCrossesApp {
         }
         return true;
     }
-/*
-    public static int[] serchDots(int masXY,int i, int j){
-        if (masDots[0] == 1 && i != 0 && j != 0) {
-            tempMasAllXY[1] = j - 1;
-            tempMasAllXY[0] = i - 1;
-        } else if (masDots[0] == DOTS_TO_WIN - 1) {
-            if (tempMasAllXY[0] != -1) {
-                masXY[0] = tempMasAllXY[0];
-                masXY[1] = tempMasAllXY[1];
-                return masXY;
-            } else {
-                if (i != SIZE - 1 && j != SIZE - 1) {
-                    masXY[1] = j + 1;
-                    masXY[0] = i + 1;
-                    return masXY;
-                } else {
-                    return masXY;
-                }
-            }
+
+    /**
+     * Подтверждает найдена ли позиция которуюнужно блокировать
+     *
+     * @param index 0-строки, 1-стобцы, 2-главная диагональ, 3-побочная диагональ
+     */
+    public static boolean isBlockWinPosition(int index) {
+        if (masDots[index] == DOTS_TO_WIN - 2 || masDots[index] == DOTS_TO_WIN - 1) {
+            return true;
+        } else {
+            return false;
         }
     }
-    */
 
     /**
      * Возвращает координаты на игровом поле, где нужно поставить значение для блокировки игрока
+     * p.s. в реализации есть допущения, например алгоритм строит не все возможные выйгрышные комбинации человека, а первую подходящую к блокировке (проход мапы начинается с левого верхнего угла).
      *
      * @return возвращает массив с координатами на игровом поле, где нужно поставить значение или {'-1','-1'}
      */
@@ -133,7 +125,7 @@ public class NoughtsCrossesApp {
         masXY[0] = -1;
         masXY[1] = -1;
 
-        //выделил массив в поле, дабы не плодить новые массивы каждый раз при вызове метода
+        //выделил массив в поле, дабы не плодить новые массивы каждый раз при вызове метода (а метод будет вызываться каждый раз при ходе компьютера)
         for (int i = 0; i < tempMasAllXY.length; i++) {
             tempMasAllXY[i] = -1;
         }
@@ -153,36 +145,36 @@ public class NoughtsCrossesApp {
 
             for (int j = 0; j < SIZE; j++) {
                 //проверяем строки
-                if (checkDotsToWin(map[i][j], DOT_X, masDots, 0)) {
-                    if (masDots[0] == 1 && i != 0 && j != 0) {
+                if (checkDotsToWin(map[i][j], DOT_X, 0) || isBlockWinPosition(0)) {
+                    if (masDots[0] == 1 && i != 0 && j != 0 && isCellValid(j - 1, i)) {
                         tempMasAllXY[1] = j - 1;
-                        tempMasAllXY[0] = i - 1;
-                    } else if (masDots[0] == DOTS_TO_WIN - 1) {
+                        tempMasAllXY[0] = i;
+                    } else if (isBlockWinPosition(0)) {
                         if (tempMasAllXY[0] != -1) {
                             masXY[0] = tempMasAllXY[0];
                             masXY[1] = tempMasAllXY[1];
                             return masXY;
-                        } else if (i != SIZE - 1 && j != SIZE - 1) {
+                        } else if (i != SIZE - 1 && j != SIZE - 1 && isCellValid(j + 1, i)) {
+                            masXY[0] = i;
                             masXY[1] = j + 1;
-                            masXY[0] = i + 1;
                             return masXY;
                         }
                     }
                 }
 
                 //проверяем столбцы (благодаря допущению что игровое поле квадратное)
-                if (checkDotsToWin(map[j][i], DOT_X, masDots, 1)) {
-                    if (masDots[0] == 1 && i != 0 && j != 0) {
-                        tempMasAllXY[3] = i - 1;
+                if (checkDotsToWin(map[j][i], DOT_X, 1) || isBlockWinPosition(1)) {
+                    if (masDots[1] == 1 && j != 0 && isCellValid(i, j - 1)) {
                         tempMasAllXY[2] = j - 1;
-                    } else if (masDots[0] == DOTS_TO_WIN - 1) {
-                        if (tempMasAllXY[0] != -1) {
+                        tempMasAllXY[3] = i;
+                    } else if (isBlockWinPosition(1)) {
+                        if (tempMasAllXY[2] != -1) {
                             masXY[0] = tempMasAllXY[2];
                             masXY[1] = tempMasAllXY[3];
                             return masXY;
-                        } else if (i != SIZE - 1 && j != SIZE - 1) {
-                            masXY[3] = i + 1;
-                            masXY[2] = j + 1;
+                        } else if (i != SIZE - 1 && j != SIZE - 1 && isCellValid(i, j + 1)) {
+                            masXY[0] = j + 1;
+                            masXY[1] = i;
                             return masXY;
                         }
 
@@ -191,36 +183,38 @@ public class NoughtsCrossesApp {
 
                 //проверяем диагонали
                 if (i == j) {
-                    if (checkDotsToWin(map[i][j], DOT_X, masDots, 2)) {
-                        if (masDots[0] == 1 && i != 0 && j != 0) {
-                            tempMasAllXY[5] = j - 1;
-                            tempMasAllXY[4] = i - 1;
-                        } else if (masDots[0] == DOTS_TO_WIN - 1) {
-                            if (tempMasAllXY[0] != -1) {
-                                masXY[0] = tempMasAllXY[4];
-                                masXY[1] = tempMasAllXY[5];
+                    if (checkDotsToWin(map[i][j], DOT_X, 2) || isBlockWinPosition(2)) {
+                        if (masDots[2] == 1 && i != 0 && j != 0 && isCellValid(i - 1, j - 1)) {
+                            tempMasAllXY[5] = i - 1;
+                            tempMasAllXY[4] = j - 1;
+                        } else if (isBlockWinPosition(2)) {
+                            if (tempMasAllXY[4] != -1) {
+                                masXY[0] = tempMasAllXY[5];
+                                masXY[1] = tempMasAllXY[4];
                                 return masXY;
-                            } else if (i != SIZE - 1 && j != SIZE - 1) {
-                                masXY[5] = j + 1;
-                                masXY[4] = i + 1;
+                            } else if (i != SIZE - 1 && j != SIZE - 1 && isCellValid(i + 1, j + 1)) {
+                                masXY[0] = i + 1;
+                                masXY[1] = j + 1;
                                 return masXY;
                             }
 
                         }
                     }
-                } else if (SIZE - j - 1 - i == 0) {
-                    if (checkDotsToWin(map[i][j], DOT_X, masDots, 3)) {
-                        if (masDots[0] == 1 && i != 0 && j != 0) {
+                }
+
+                if (SIZE - j - 1 - i == 0) {
+                    if (checkDotsToWin(map[i][j], DOT_X, 3) || isBlockWinPosition(3)) {
+                        if (masDots[3] == 1 && i != 0 && j != SIZE - 1 && isCellValid(j + 1,i - 1 )) {
                             tempMasAllXY[7] = i - 1;
-                            tempMasAllXY[6] = j - 1;
-                        } else if (masDots[0] == DOTS_TO_WIN - 1) {
-                            if (tempMasAllXY[0] != -1) {
-                                masXY[0] = tempMasAllXY[6];
-                                masXY[1] = tempMasAllXY[7];
+                            tempMasAllXY[6] = j + 1;
+                        } else if (isBlockWinPosition(3)) {
+                            if (tempMasAllXY[6] != -1) {
+                                masXY[0] = tempMasAllXY[7];
+                                masXY[1] = tempMasAllXY[6];
                                 return masXY;
-                            } else if (i != SIZE - 1 && j != SIZE - 1) {
-                                masXY[7] = i + 1;
-                                masXY[6] = j + 1;
+                            } else if (i != SIZE - 1 && j != 0 && isCellValid(j - 1,i + 1)) {
+                                masXY[0] = i + 1;
+                                masXY[1] = j - 1;
                                 return masXY;
                             }
 
@@ -258,11 +252,11 @@ public class NoughtsCrossesApp {
      *
      * @param element значение текущей позиции на игровом поле
      * @param symbol  с этим символом идет сравнение
-     * @param masDots храним количество идущих подряд сиволов - symbol, в строке,стобце и диагоналях
+     *                masDots храним количество идущих подряд сиволов - symbol, в строке,стобце и диагоналях
      * @param index   указывает на то, где мы сейчас ведем поиск - строке (0),стобце(1),главная диагональ(2) или побочная(3)
      * @return возвращаем true если значение текущнй позии на игровом поле = искомому сиволу - symbol
      */
-    public static boolean checkDotsToWin(char element, char symbol, int[] masDots, int index) {
+    public static boolean checkDotsToWin(char element, char symbol, int index) {
         if (element == symbol) {
             masDots[index]++;
             return true;
@@ -293,22 +287,22 @@ public class NoughtsCrossesApp {
 
             for (int j = 0; j < SIZE; j++) {
                 //проверяем строки
-                if (checkDotsToWin(map[i][j], symbol, masDots, 0) && (masDots[0] == DOTS_TO_WIN)) {
+                if (checkDotsToWin(map[i][j], symbol, 0) && (masDots[0] == DOTS_TO_WIN)) {
                     return true;
                 }
 
                 //проверяем столбцы (благодаря допущению что игровое поле квадратное)
-                if (checkDotsToWin(map[j][i], symbol, masDots, 1) && (masDots[1] == DOTS_TO_WIN)) {
+                if (checkDotsToWin(map[j][i], symbol, 1) && (masDots[1] == DOTS_TO_WIN)) {
                     return true;
                 }
 
                 //проверяем диагонали
                 if (i == j) {
-                    if (checkDotsToWin(map[i][j], symbol, masDots, 2) && (masDots[2] == DOTS_TO_WIN)) {
+                    if (checkDotsToWin(map[i][j], symbol, 2) && (masDots[2] == DOTS_TO_WIN)) {
                         return true;
                     }
                 } else if (SIZE - j - 1 - i == 0) {
-                    if (checkDotsToWin(map[i][j], symbol, masDots, 3) && (masDots[3] == DOTS_TO_WIN)) {
+                    if (checkDotsToWin(map[i][j], symbol, 3) && (masDots[3] == DOTS_TO_WIN)) {
                         return true;
                     }
                 }
