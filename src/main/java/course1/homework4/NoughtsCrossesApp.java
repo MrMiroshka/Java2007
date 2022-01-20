@@ -121,6 +121,8 @@ public class NoughtsCrossesApp {
      * @return возвращает массив с координатами на игровом поле, где нужно поставить значение или {'-1','-1'}
      */
     public static int[] isBlockingHumen() {
+        int slevaDiagonals = 1, spravaDiagonals = 1 + (SIZE - DOTS_TO_WIN + 1) * (SIZE - DOTS_TO_WIN + 1);
+
         int[] masXY = new int[2];
         masXY[0] = -1;
         masXY[1] = -1;
@@ -130,7 +132,7 @@ public class NoughtsCrossesApp {
             tempMasAllXY[i] = -1;
         }
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < masDots.length; i++) {
             masDots[i] = 0;
         }
 
@@ -181,7 +183,29 @@ public class NoughtsCrossesApp {
                     }
                 }
 
+
                 //проверяем диагонали
+                // диагонали с лева на право
+                if (i <= (SIZE - DOTS_TO_WIN) && j <= (SIZE - DOTS_TO_WIN)) {
+                    slevaDiagonals++;
+                    if (checkDotsToWin(map[i][j], DOT_X, slevaDiagonals) || isBlockWinPosition(slevaDiagonals)) {
+                        if (masDots[slevaDiagonals] == 1 && i != 0 && j != 0 && isCellValid(i - 1, j - 1)) {
+                            tempMasAllXY[slevaDiagonals*2+1] = i - 1;
+                            tempMasAllXY[slevaDiagonals*2] = j - 1;
+                        } else if (isBlockWinPosition(spravaDiagonals)) {
+                            if (tempMasAllXY[4] != -1) {
+                                masXY[0] = tempMasAllXY[slevaDiagonals*2+1];
+                                masXY[1] = tempMasAllXY[slevaDiagonals*2];
+                                return masXY;
+                            } else if (i != SIZE - 1 && j != SIZE - 1 && isCellValid(i + 1, j + 1)) {
+                                masXY[0] = i + 1;
+                                masXY[1] = j + 1;
+                                return masXY;
+                            }
+                        }
+                    }
+                }
+
                 if (i == j) {
                     if (checkDotsToWin(map[i][j], DOT_X, 2) || isBlockWinPosition(2)) {
                         if (masDots[2] == 1 && i != 0 && j != 0 && isCellValid(i - 1, j - 1)) {
@@ -204,7 +228,7 @@ public class NoughtsCrossesApp {
 
                 if (SIZE - j - 1 - i == 0) {
                     if (checkDotsToWin(map[i][j], DOT_X, 3) || isBlockWinPosition(3)) {
-                        if (masDots[3] == 1 && i != 0 && j != SIZE - 1 && isCellValid(j + 1,i - 1 )) {
+                        if (masDots[3] == 1 && i != 0 && j != SIZE - 1 && isCellValid(j + 1, i - 1)) {
                             tempMasAllXY[7] = i - 1;
                             tempMasAllXY[6] = j + 1;
                         } else if (isBlockWinPosition(3)) {
@@ -212,7 +236,7 @@ public class NoughtsCrossesApp {
                                 masXY[0] = tempMasAllXY[7];
                                 masXY[1] = tempMasAllXY[6];
                                 return masXY;
-                            } else if (i != SIZE - 1 && j != 0 && isCellValid(j - 1,i + 1)) {
+                            } else if (i != SIZE - 1 && j != 0 && isCellValid(j - 1, i + 1)) {
                                 masXY[0] = i + 1;
                                 masXY[1] = j - 1;
                                 return masXY;
@@ -273,12 +297,12 @@ public class NoughtsCrossesApp {
      * @return true, если выйграл
      */
     public static boolean checkWin(char symbol) {
-        //Счетчики точек (сколько подряд одинаковых значений) в строках - 1 элемент массива,стобцах -2 элемент массива,
-        // главной - 3 элемент массива и побочной диагоналей - 4 элемент массива
-        //что бы каждый раз не создавался массив, выделил его в поле
-        for (int i = 0; i < 4; i++) {
+        //Счетчики точек (сколько подряд одинаковых значений) в строках - 1 элемент массива,стобцах -2 элемент массива, и диагонали
+        for (int i = 0; i < masDots.length; i++) {
             masDots[i] = 0;
         }
+
+        int slevaDiagonals = 1, spravaDiagonals = 1 + (SIZE - DOTS_TO_WIN + 1) * (SIZE - DOTS_TO_WIN + 1);
 
         for (int i = 0; i < SIZE; i++) {
             //после каждого прохода обнуляем значения по строкам и стобцам
@@ -297,11 +321,13 @@ public class NoughtsCrossesApp {
                 }
 
                 //проверяем диагонали
-                if (i == j) {
-                    if (checkDotsToWin(map[i][j], symbol, 2) && (masDots[2] == DOTS_TO_WIN)) {
+                if (i <= (SIZE - DOTS_TO_WIN) && j <= ( SIZE - DOTS_TO_WIN)) {
+                    slevaDiagonals++;
+                    if (checkDotsToWin(map[i][j], symbol, slevaDiagonals) && (masDots[slevaDiagonals] == DOTS_TO_WIN)) {
                         return true;
                     }
-                } else if (SIZE - j - 1 - i == 0) {
+                }
+                if (SIZE - j - 1 - i == 0) {
                     if (checkDotsToWin(map[i][j], symbol, 3) && (masDots[3] == DOTS_TO_WIN)) {
                         return true;
                     }
@@ -337,10 +363,10 @@ public class NoughtsCrossesApp {
      */
     public static void initGame() {
         //Создаем счетчики точек (сколько подряд одинаковых значений) в строках,столбцах и диагоналях
-        masDots = new int[]{0, 0, 0, 0};
+        masDots = new int[2 + ((1 + SIZE - DOTS_TO_WIN) * (1 + SIZE - DOTS_TO_WIN))*2];
         //Создаем массив который будет хранить координаты возможного хода компьютера (для блокировки выйгрышного
         // хода пользователя) по строкам,стобцам и диагоналям
-        tempMasAllXY = new int[8];
+        tempMasAllXY = new int[masDots.length * 2];
 
         initMap();
         printMap();
