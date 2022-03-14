@@ -1,6 +1,6 @@
 package course1.lesson8;
 
-import course1.bonus.ColoredPoint;
+//import course1.bonus.ColoredPoint;
 
 import javax.swing.*;
 import java.awt.*;
